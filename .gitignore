@@ -34,3 +34,4 @@ pnpm-debug.log*
 # misc
 *.pem
 *.tsbuildinfo
+.vercel
