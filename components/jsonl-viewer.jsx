@@ -173,39 +173,52 @@ function TimelineHistogram({ histogram, selectedRange, onChange }) {
         <span>{formatDate(selectedRange.end)}</span>
       </div>
 
-      <div className="rangeControl">
+      <div className="rangeControl rangeControlSingle">
         <label>
-          Start
-          <input
-            type="range"
-            min={histogram.min}
-            max={histogram.max}
-            step={Math.max(Math.floor(totalRange / 400), 1)}
-            value={selectedRange.start}
-            onChange={(event) =>
-              onChange({
-                start: Math.min(Number(event.target.value), selectedRange.end),
-                end: selectedRange.end
-              })
-            }
-          />
+          Time range
+          <div className="dualRange">
+            <div
+              className="dualRangeFill"
+              style={{
+                left: `${((selectedRange.start - histogram.min) / totalRange) * 100}%`,
+                right: `${100 - ((selectedRange.end - histogram.min) / totalRange) * 100}%`
+              }}
+            />
+            <input
+              type="range"
+              min={histogram.min}
+              max={histogram.max}
+              step={Math.max(Math.floor(totalRange / 400), 1)}
+              value={selectedRange.start}
+              className="rangeThumb rangeThumbStart"
+              onChange={(event) =>
+                onChange({
+                  start: Math.min(Number(event.target.value), selectedRange.end),
+                  end: selectedRange.end
+                })
+              }
+            />
+            <input
+              type="range"
+              min={histogram.min}
+              max={histogram.max}
+              step={Math.max(Math.floor(totalRange / 400), 1)}
+              value={selectedRange.end}
+              className="rangeThumb rangeThumbEnd"
+              onChange={(event) =>
+                onChange({
+                  start: selectedRange.start,
+                  end: Math.max(Number(event.target.value), selectedRange.start)
+                })
+              }
+            />
+          </div>
         </label>
-        <label>
-          End
-          <input
-            type="range"
-            min={histogram.min}
-            max={histogram.max}
-            step={Math.max(Math.floor(totalRange / 400), 1)}
-            value={selectedRange.end}
-            onChange={(event) =>
-              onChange({
-                start: selectedRange.start,
-                end: Math.max(Number(event.target.value), selectedRange.start)
-              })
-            }
-          />
-        </label>
+      </div>
+
+      <div className="timelineLabels timelineLabelsSecondary">
+        <span>Start</span>
+        <span>End</span>
       </div>
     </div>
   );

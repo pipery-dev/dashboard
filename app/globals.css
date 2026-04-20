@@ -341,8 +341,97 @@ label {
   margin-top: 1rem;
 }
 
+.rangeControlSingle {
+  grid-template-columns: 1fr;
+}
+
 .rangeControl input[type="range"] {
   width: 100%;
+}
+
+.dualRange {
+  position: relative;
+  height: 2.75rem;
+  margin-top: 0.55rem;
+}
+
+.dualRange::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(23, 49, 38, 0.12);
+}
+
+.dualRangeFill {
+  position: absolute;
+  top: 50%;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.rangeThumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.rangeThumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #f6f0e8;
+  background: var(--accent-warm);
+  box-shadow: 0 4px 12px rgba(23, 49, 38, 0.22);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.rangeThumb::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #f6f0e8;
+  background: var(--accent-warm);
+  box-shadow: 0 4px 12px rgba(23, 49, 38, 0.22);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.rangeThumb::-webkit-slider-runnable-track {
+  height: 8px;
+  background: transparent;
+}
+
+.rangeThumb::-moz-range-track {
+  height: 8px;
+  background: transparent;
+}
+
+.rangeThumbStart {
+  z-index: 2;
+}
+
+.rangeThumbEnd {
+  z-index: 3;
+}
+
+.timelineLabelsSecondary {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
 }
 
 .entryCardTop {
