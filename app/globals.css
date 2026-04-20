@@ -1,0 +1,369 @@
+:root {
+  --bg: #f4efe5;
+  --surface: rgba(255, 251, 245, 0.88);
+  --surface-strong: #fffaf1;
+  --ink: #173126;
+  --muted: #5a6f64;
+  --line: rgba(23, 49, 38, 0.12);
+  --accent: #1f4d3a;
+  --accent-strong: #163628;
+  --accent-warm: #c78c3e;
+  --danger: #7d2b2b;
+  --shadow: 0 24px 80px rgba(38, 44, 32, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(199, 140, 62, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(31, 77, 58, 0.12), transparent 24%),
+    linear-gradient(180deg, #efe7d8 0%, #f4efe5 58%, #ece4d3 100%);
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+code,
+pre {
+  font-family: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", monospace;
+}
+
+.pageShell {
+  width: min(1400px, calc(100vw - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.heroCard,
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.heroCard {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroCard::after {
+  content: "";
+  position: absolute;
+  inset: auto -8% -30% auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(199, 140, 62, 0.32), transparent 70%);
+}
+
+.eyebrow,
+.panelLabel,
+.subtleText,
+.metaCard span,
+.runCard span,
+.savedItem span {
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.eyebrow,
+.panelLabel {
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.heroCopy h1,
+.panelHeader h2 {
+  margin: 0.35rem 0 0;
+  line-height: 1.05;
+}
+
+.heroCopy h1 {
+  max-width: 12ch;
+  font-size: clamp(2.5rem, 6vw, 4.8rem);
+}
+
+.heroText {
+  max-width: 60ch;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(280px, 0.9fr);
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.controlPanel,
+.savedPanel,
+.viewerGrid,
+.emptyState {
+  min-width: 0;
+}
+
+.panel {
+  padding: 1.25rem;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.formGrid,
+.metaGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.formGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metaGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.metaCard,
+.runCard,
+.savedItem,
+.entryCard {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 0.95rem 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+}
+
+.textInput {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(23, 49, 38, 0.16);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--ink);
+}
+
+.primaryButton,
+.ghostButton {
+  border-radius: 999px;
+  padding: 0.9rem 1.2rem;
+  border: none;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.primaryButton {
+  background: var(--accent);
+  color: #f6f0e8;
+}
+
+.primaryButton:hover,
+.ghostButton:hover,
+.savedItem:hover,
+.entryCard:hover {
+  transform: translateY(-1px);
+}
+
+.ghostButton {
+  background: rgba(23, 49, 38, 0.08);
+  color: var(--ink);
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.2rem;
+}
+
+.statPill {
+  white-space: nowrap;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(199, 140, 62, 0.14);
+  color: var(--accent-strong);
+}
+
+.runList,
+.savedList,
+.entryList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.runList {
+  margin-top: 1rem;
+}
+
+.runCard p,
+.savedItem p,
+.entryCard p,
+.metaCard strong {
+  margin: 0.35rem 0 0;
+}
+
+.savedItem,
+.entryCard {
+  width: 100%;
+  text-align: left;
+}
+
+.viewerGrid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 1.25rem;
+}
+
+.searchRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.entryCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.entryCardActive {
+  border-color: rgba(31, 77, 58, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(31, 77, 58, 0.18);
+}
+
+.detailPanel {
+  overflow: hidden;
+}
+
+.detailGrid {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+}
+
+.detailRow {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.detailRow dt {
+  font-weight: 700;
+}
+
+.detailRow dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 20px;
+  background: #1b241f;
+  color: #edf6ef;
+  overflow: auto;
+}
+
+.errorBanner {
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  background: rgba(125, 43, 43, 0.1);
+  border: 1px solid rgba(125, 43, 43, 0.18);
+  border-radius: 16px;
+  color: var(--danger);
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: 240px;
+}
+
+.smallEmpty {
+  min-height: 120px;
+}
+
+@media (max-width: 1080px) {
+  .heroCard,
+  .workspace,
+  .viewerGrid,
+  .formGrid,
+  .metaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .searchRow {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .heroCard,
+  .panel,
+  .entryCard,
+  .savedItem {
+    animation: rise 400ms ease both;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
