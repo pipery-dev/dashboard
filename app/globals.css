@@ -220,6 +220,32 @@ label {
   margin-top: 1.2rem;
 }
 
+.tabRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tabButton {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+}
+
+.tabButtonActive {
+  background: var(--accent);
+  color: #f6f0e8;
+  border-color: transparent;
+}
+
+.tabButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .statPill {
   white-space: nowrap;
   padding: 0.45rem 0.75rem;
@@ -265,6 +291,60 @@ label {
   margin-bottom: 1rem;
 }
 
+.timelinePanel {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.timelineHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.8rem;
+}
+
+.timelineHeader h3 {
+  margin: 0.35rem 0 0;
+}
+
+.timelineChart {
+  width: 100%;
+  height: 150px;
+  overflow: visible;
+}
+
+.timelineBar {
+  fill: rgba(199, 140, 62, 0.36);
+}
+
+.timelineBarActive {
+  fill: rgba(31, 77, 58, 0.82);
+}
+
+.timelineLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.rangeControl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.rangeControl input[type="range"] {
+  width: 100%;
+}
+
 .entryCardTop {
   display: flex;
   align-items: center;
@@ -275,6 +355,13 @@ label {
 .entryCardActive {
   border-color: rgba(31, 77, 58, 0.45);
   box-shadow: inset 0 0 0 1px rgba(31, 77, 58, 0.18);
+}
+
+.entryTimestamp {
+  display: inline-block;
+  margin-top: 0.65rem;
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .detailPanel {
@@ -333,16 +420,56 @@ label {
   min-height: 120px;
 }
 
+.localTab,
+.uploadCard {
+  display: grid;
+  gap: 1rem;
+}
+
+.uploadCard h3 {
+  margin: 0;
+}
+
+.uploadHint {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.uploadDropzone {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  border: 1.5px dashed rgba(31, 77, 58, 0.3);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(199, 140, 62, 0.12), transparent 50%),
+    rgba(255, 250, 241, 0.82);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.05rem;
+  color: var(--accent-strong);
+}
+
+.fileInput {
+  display: none;
+}
+
+.localMetaGrid {
+  margin-top: 0;
+}
+
 @media (max-width: 1080px) {
   .heroCard,
   .workspace,
   .viewerGrid,
   .formGrid,
-  .metaGrid {
+  .metaGrid,
+  .rangeControl {
     grid-template-columns: 1fr;
   }
 
-  .searchRow {
+  .searchRow,
+  .tabRow {
     flex-direction: column;
   }
 }
