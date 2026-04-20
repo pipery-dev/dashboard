@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthenticatedOctokit } from "@/lib/github";
+import { listRuns } from "@pipery/core/github";
+import { getGitHubAccessToken } from "@/lib/github";
 
 const querySchema = z.object({
   branch: z.string().min(1),
@@ -15,27 +16,9 @@ export async function GET(request, { params }) {
       workflowId: request.nextUrl.searchParams.get("workflowId")
     });
 
-    const octokit = await getAuthenticatedOctokit();
-    const response = await octokit.rest.actions.listWorkflowRuns({
-      owner,
-      repo,
-      workflow_id: query.workflowId,
-      branch: query.branch,
-      per_page: 50
-    });
-
+    const token = await getGitHubAccessToken();
     return NextResponse.json({
-      runs: response.data.workflow_runs.map((run) => ({
-        id: run.id,
-        name: run.name,
-        displayTitle: run.display_title,
-        event: run.event,
-        status: run.status,
-        conclusion: run.conclusion,
-        createdAt: run.created_at,
-        updatedAt: run.updated_at,
-        htmlUrl: run.html_url
-      }))
+      runs: await listRuns(owner, repo, query.workflowId, query.branch, token)
     });
   } catch (error) {
     return NextResponse.json(

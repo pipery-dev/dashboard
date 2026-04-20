@@ -1,0 +1,17 @@
+{
+  "name": "pipery-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "pipery": "./bin/pipery.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "scripts": {
+    "start": "node ./bin/pipery.js",
+    "check": "node ./bin/pipery.js help"
+  }
+}

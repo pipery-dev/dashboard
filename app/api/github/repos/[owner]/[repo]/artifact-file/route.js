@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import JSZip from "jszip";
 import { z } from "zod";
-import { getGitHubClient } from "@/lib/github";
+import { downloadJsonlFromArtifact } from "@pipery/core/github";
+import { getGitHubAccessToken } from "@/lib/github";
 
 const querySchema = z.object({
   artifactId: z.string().min(1)
@@ -14,39 +14,8 @@ export async function GET(request, { params }) {
       artifactId: request.nextUrl.searchParams.get("artifactId")
     });
 
-    const { octokit, token } = await getGitHubClient();
-    const artifactResponse = await octokit.rest.actions.getArtifact({
-      owner,
-      repo,
-      artifact_id: Number(query.artifactId)
-    });
-
-    const downloadResponse = await fetch(artifactResponse.data.archive_download_url, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    if (!downloadResponse.ok) {
-      throw new Error("GitHub artifact download failed.");
-    }
-
-    const zipBuffer = await downloadResponse.arrayBuffer();
-    const zip = await JSZip.loadAsync(zipBuffer);
-    const jsonlFiles = [];
-
-    for (const [path, file] of Object.entries(zip.files)) {
-      if (file.dir || !path.toLowerCase().endsWith(".jsonl")) {
-        continue;
-      }
-
-      const content = await file.async("text");
-      jsonlFiles.push({
-        path,
-        content,
-        preferred: path.toLowerCase().endsWith("pipery.jsonl")
-      });
-    }
+    const token = await getGitHubAccessToken();
+    const jsonlFiles = await downloadJsonlFromArtifact(owner, repo, Number(query.artifactId), token);
 
     if (jsonlFiles.length === 0) {
       return NextResponse.json(

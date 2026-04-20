@@ -2,6 +2,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@pipery/core/*": [
+        "packages/pipery-core/src/*"
+      ],
       "@/*": [
         "./*"
       ]

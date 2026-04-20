@@ -1,0 +1,13 @@
+{
+  "name": "@pipery/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./github": "./src/github.js",
+    "./jsonl": "./src/jsonl.js"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}

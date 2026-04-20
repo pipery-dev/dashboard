@@ -1,0 +1,14 @@
+name: "pipery-cli"
+arch: "amd64"
+platform: "linux"
+version: "${PIPERY_VERSION}"
+section: "utils"
+priority: "optional"
+maintainer: "Pipery"
+description: "Pipery command line interface"
+license: "MIT"
+contents:
+  - src: ./release-root/usr/bin/pipery
+    dst: /usr/bin/pipery
+    file_info:
+      mode: 0755

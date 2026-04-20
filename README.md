@@ -1,14 +1,22 @@
-# Pipery Dashboard
+# Pipery Dashboard Monorepo
 
-A local-first Next.js dashboard for signing in with GitHub, browsing repositories and GitHub Actions artifacts, and opening `pipery.jsonl` files with search and entry inspection.
+This repository now contains both Pipery surfaces:
+
+- `app`, `components`, `lib`: the local-first Next.js dashboard
+- `packages/pipery-cli`: the terminal CLI
+- `packages/pipery-core`: shared GitHub artifact and JSONL logic
+
+The dashboard signs in with GitHub, browses repositories and GitHub Actions artifacts, and opens `pipery.jsonl` files with search and entry inspection. The CLI uses the same artifact traversal and JSONL parsing flow for terminal use.
 
 ## Features
 
-- GitHub login via NextAuth
+- GitHub login via NextAuth for the dashboard
+- GitHub device flow login for the CLI
 - Repository, branch, workflow, run, and artifact selection
 - Artifact ZIP inspection with automatic `.jsonl` extraction
 - Preference for `pipery.jsonl` when present
 - Local IndexedDB cache for offline re-open
+- Shared JSONL parsing and GitHub artifact access across dashboard and CLI
 - PWA manifest and service worker
 
 ## Setup
@@ -25,13 +33,17 @@ A local-first Next.js dashboard for signing in with GitHub, browsing repositorie
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL`
 
-4. Install dependencies:
+4. Install dependencies for the monorepo:
 
    `npm install`
 
-5. Start the app:
+5. Start the dashboard:
 
    `npm run dev`
+
+6. Run the CLI:
+
+   `npm run cli -- help`
 
 ## Notes
 
@@ -55,5 +67,10 @@ It creates:
 
 - preview deployments for pull requests
 - production deployments for pushes to `main`
+
+CLI packaging is handled separately:
+
+- `.github/workflows/release-pipery-cli.yml`
+- [docs/pipery-cli-releases.md](/Users/hamed/pipery-dashboard/docs/pipery-cli-releases.md)
 
 This app is a good fit for Vercel because it uses server-side Next.js features such as `app/api` route handlers and NextAuth.

@@ -1,52 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { buildHistogram, getTimestamp, parseJsonl } from "@pipery/core/jsonl";
 
-const PIPERY_TIMESTAMP_FIELD = "timestamp";
-
-function parseJsonl(content) {
-  return content
-    .split(/\r?\n/)
-    .map((line, index) => ({ line, index }))
-    .filter(({ line }) => line.trim().length > 0)
-    .map(({ line, index }) => {
-      try {
-        const parsed = JSON.parse(line);
-        return {
-          id: `${index}-${parsed.id ?? parsed.name ?? "entry"}`,
-          lineNumber: index + 1,
-          data: parsed,
-          raw: line
-        };
-      } catch (error) {
-        return {
-          id: `${index}-invalid`,
-          lineNumber: index + 1,
-          data: {
-            parseError: error.message,
-            raw: line
-          },
-          raw: line,
-          invalid: true
-        };
-      }
-    });
-}
-
-function getEntryTimestamp(value) {
-  if (!value || typeof value !== "object" || typeof value[PIPERY_TIMESTAMP_FIELD] !== "string") {
-    return null;
-  }
-
-  const date = new Date(value[PIPERY_TIMESTAMP_FIELD]);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date.toISOString();
-}
-
-function summarizeEntry(entry) {
+function summarizeEntryCard(entry) {
   if (entry.invalid) {
     return {
       title: `Invalid JSON at line ${entry.lineNumber}`,
@@ -59,9 +16,11 @@ function summarizeEntry(entry) {
   const duration = entry.data.duration ? `duration: ${entry.data.duration}` : null;
   const exitCode =
     typeof entry.data.exit_code === "number" ? `exit: ${entry.data.exit_code}` : null;
-  const summary = [mode, duration, exitCode].filter(Boolean).join(" • ");
 
-  return { title, summary };
+  return {
+    title,
+    summary: [mode, duration, exitCode].filter(Boolean).join(" • ")
+  };
 }
 
 function formatDate(value) {
@@ -73,58 +32,6 @@ function formatDate(value) {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
-}
-
-function buildHistogram(entries) {
-  const timestamped = entries
-    .map((entry) => {
-      const timestamp = getEntryTimestamp(entry.data);
-
-      return timestamp
-        ? {
-            ...entry,
-            timestamp,
-            timeValue: new Date(timestamp).getTime()
-          }
-        : null;
-    })
-    .filter(Boolean)
-    .sort((left, right) => left.timeValue - right.timeValue);
-
-  if (timestamped.length < 2) {
-    return null;
-  }
-
-  const min = timestamped[0].timeValue;
-  const max = timestamped[timestamped.length - 1].timeValue;
-  const range = Math.max(max - min, 1);
-  const bucketCount = Math.min(24, Math.max(6, Math.ceil(Math.sqrt(timestamped.length))));
-  const bucketSize = range / bucketCount;
-  const buckets = Array.from({ length: bucketCount }, (_, index) => {
-    const start = min + index * bucketSize;
-    const end = index === bucketCount - 1 ? max : start + bucketSize;
-
-    return {
-      start,
-      end,
-      count: 0
-    };
-  });
-
-  for (const entry of timestamped) {
-    const position = Math.min(
-      bucketCount - 1,
-      Math.floor((entry.timeValue - min) / Math.max(bucketSize, 1))
-    );
-    buckets[position].count += 1;
-  }
-
-  return {
-    min,
-    max,
-    buckets,
-    timestampedCount: timestamped.length
-  };
 }
 
 function TimelineHistogram({ histogram, selectedRange, onChange }) {
@@ -264,7 +171,7 @@ export function JsonlViewer({ document, onSelectSaved }) {
         return true;
       }
 
-      const timestamp = getEntryTimestamp(entry.data);
+      const timestamp = getTimestamp(entry);
 
       if (!timestamp) {
         return true;
@@ -313,8 +220,8 @@ export function JsonlViewer({ document, onSelectSaved }) {
 
         <div className="entryList">
           {filteredEntries.map((entry) => {
-            const summary = summarizeEntry(entry);
-            const timestamp = getEntryTimestamp(entry.data);
+            const summary = summarizeEntryCard(entry);
+            const timestamp = getTimestamp(entry);
             return (
               <button
                 key={entry.id}
