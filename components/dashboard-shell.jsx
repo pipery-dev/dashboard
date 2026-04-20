@@ -19,14 +19,14 @@ export function DashboardShell({ session }) {
             </p>
           </div>
           <div className="heroActions">
-            <SignInButton session={session} />
+            <SignInButton />
             <p className="subtleText">
               Required GitHub OAuth scopes: <code>read:user repo</code>
             </p>
           </div>
         </section>
 
-        <RepoBrowser session={session} />
+        <RepoBrowser />
       </main>
     </SessionProvider>
   );

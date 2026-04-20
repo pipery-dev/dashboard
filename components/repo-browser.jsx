@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { JsonlViewer } from "@/components/jsonl-viewer";
 import { getSavedDocument, listSavedDocuments, saveDocument } from "@/lib/storage";
 
@@ -26,8 +27,10 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-export function RepoBrowser({ session }) {
-  const [activeTab, setActiveTab] = useState(session ? "github" : "local");
+export function RepoBrowser() {
+  const { data: session, status } = useSession();
+  const isSignedIn = Boolean(session);
+  const [activeTab, setActiveTab] = useState("local");
   const [repos, setRepos] = useState([]);
   const [branches, setBranches] = useState([]);
   const [workflows, setWorkflows] = useState([]);
@@ -57,13 +60,31 @@ export function RepoBrowser({ session }) {
   }, []);
 
   useEffect(() => {
-    if (!session && activeTab === "github") {
+    if (isSignedIn && activeTab === "local" && !document) {
+      setActiveTab("github");
+    }
+
+    if (!isSignedIn && activeTab === "github") {
       setActiveTab("local");
     }
-  }, [session, activeTab]);
+  }, [isSignedIn, activeTab, document]);
 
   useEffect(() => {
-    if (!session) {
+    if (!isSignedIn) {
+      setError("");
+      setLoading("");
+      setRepos([]);
+      setBranches([]);
+      setWorkflows([]);
+      setRuns([]);
+      setArtifacts([]);
+      setSelection({
+        repo: "",
+        branch: "",
+        workflowId: "",
+        runId: "",
+        artifactId: ""
+      });
       return;
     }
 
@@ -78,7 +99,7 @@ export function RepoBrowser({ session }) {
       })
       .catch((fetchError) => setError(fetchError.message))
       .finally(() => setLoading(""));
-  }, [session]);
+  }, [isSignedIn]);
 
   useEffect(() => {
     if (!selectedRepo) {
@@ -390,9 +411,9 @@ export function RepoBrowser({ session }) {
                 </div>
                 <div className="metaCard">
                   <span>Signed in as</span>
-                  <strong>{session.user?.email || session.user?.name || "GitHub user"}</strong>
-                </div>
+                <strong>{session?.user?.email || session?.user?.name || "GitHub user"}</strong>
               </div>
+            </div>
 
               <div className="buttonRow">
                 <button className="primaryButton" onClick={openArtifact} disabled={!selection.artifactId}>
@@ -439,7 +460,7 @@ export function RepoBrowser({ session }) {
             <div className="metaGrid localMetaGrid">
               <div className="metaCard">
                 <span>Access mode</span>
-                <strong>{session ? "Signed in" : "Offline/local only"}</strong>
+                <strong>{isSignedIn ? "Signed in" : "Offline/local only"}</strong>
               </div>
               <div className="metaCard">
                 <span>Upload path</span>

@@ -1,11 +1,21 @@
 "use client";
 
-import { signIn, signOut } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
-export function SignInButton({ session }) {
+export function SignInButton() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <button className="ghostButton" disabled>
+        Checking session
+      </button>
+    );
+  }
+
   if (session) {
     return (
-      <button className="ghostButton" onClick={() => signOut()}>
+      <button className="ghostButton" onClick={() => signOut({ callbackUrl: "/" })}>
         Sign out
       </button>
     );
