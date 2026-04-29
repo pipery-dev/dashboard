@@ -2,15 +2,10 @@
   "name": "pipery-dashboard",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "cli": "node ./packages/pipery-cli/bin/pipery.js",
-    "cli:check": "node ./packages/pipery-cli/bin/pipery.js help"
+    "start": "next start"
   },
   "dependencies": {
     "idb": "^8.0.3",

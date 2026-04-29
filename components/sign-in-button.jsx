@@ -22,7 +22,13 @@ export function SignInButton() {
   }
 
   return (
-    <button className="primaryButton" onClick={() => signIn("github")}>
+    <button
+      className="primaryButton"
+      onClick={() => {
+        const callbackUrl = encodeURIComponent(window.location.href);
+        window.location.href = `https://auth.pipery.dev/api/auth/signin/github?callbackUrl=${callbackUrl}`;
+      }}
+    >
       Sign in with GitHub
     </button>
   );

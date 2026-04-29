@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listRepos } from "@pipery/core/github";
+import { listRepos } from "@/lib/github-api";
 import { getGitHubAccessToken } from "@/lib/github";
 
 export async function GET() {

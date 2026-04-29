@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { JsonlViewer } from "@/components/jsonl-viewer";
 import { getSavedDocument, listSavedDocuments, saveDocument } from "@/lib/storage";
 
@@ -29,6 +30,7 @@ function formatDate(value) {
 
 export function RepoBrowser() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const isSignedIn = Boolean(session);
   const [activeTab, setActiveTab] = useState("local");
   const [repos, setRepos] = useState([]);
@@ -58,6 +60,24 @@ export function RepoBrowser() {
       setSavedDocuments([]);
     });
   }, []);
+
+  useEffect(() => {
+    const owner = searchParams.get("owner");
+    const repo = searchParams.get("repo");
+    const runId = searchParams.get("runId");
+    const artifactId = searchParams.get("artifactId");
+
+    if (owner && repo && runId && artifactId) {
+      setSelection({
+        repo: `${owner}/${repo}`,
+        branch: "",
+        workflowId: "",
+        runId,
+        artifactId
+      });
+      setActiveTab("github");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (isSignedIn && activeTab === "local" && !document) {

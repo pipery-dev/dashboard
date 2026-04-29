@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { buildHistogram, getTimestamp, parseJsonl } from "@pipery/core/jsonl";
+import { buildHistogram, getTimestamp, parseJsonl } from "@/lib/jsonl";
 
 function summarizeEntryCard(entry) {
   if (entry.invalid) {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { downloadJsonlFromArtifact } from "@pipery/core/github";
+import { downloadJsonlFromArtifact } from "@/lib/github-api";
 import { getGitHubAccessToken } from "@/lib/github";
 
 const querySchema = z.object({

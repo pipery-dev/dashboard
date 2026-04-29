@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listBranches } from "@pipery/core/github";
+import { listBranches } from "@/lib/github-api";
 import { getGitHubAccessToken } from "@/lib/github";
 
 export async function GET(_, { params }) {

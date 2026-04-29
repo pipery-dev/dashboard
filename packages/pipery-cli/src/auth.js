@@ -1,10 +1,10 @@
 import { loadConfig, saveConfig, clearConfig } from "./storage.js";
 
-const DASHBOARD_URL =
-  process.env.PIPERY_DASHBOARD_URL?.replace(/\/+$/, "") || "https://dash.pipery.dev";
+const AUTH_URL =
+  process.env.PIPERY_AUTH_URL?.replace(/\/+$/, "") || "https://auth.pipery.dev";
 
 async function postJson(pathname, body) {
-  const response = await fetch(`${DASHBOARD_URL}${pathname}`, {
+  const response = await fetch(`${AUTH_URL}${pathname}`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -27,7 +27,7 @@ export async function login() {
   console.log("\nGitHub login");
   console.log(`1. Open ${deviceCode.verificationUri}`);
   console.log(`2. Enter code: ${deviceCode.userCode}`);
-  console.log(`3. Authorize the Pipery CLI via ${DASHBOARD_URL}.\n`);
+  console.log(`3. Authorize the Pipery CLI via ${AUTH_URL}.\n`);
 
   const deadline = Date.now() + deviceCode.expiresIn * 1000;
   let pollIntervalMs = deviceCode.interval * 1000;
