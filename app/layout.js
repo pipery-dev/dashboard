@@ -5,6 +5,11 @@ export const metadata = {
   title: "Pipery Dashboard",
   description: "Local-first dashboard for browsing Pipery GitHub artifacts and inspecting pipery.jsonl files.",
   applicationName: "Pipery Dashboard",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png"
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
