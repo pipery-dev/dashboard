@@ -27,6 +27,8 @@ function safeCallbackUrl(value, origin) {
 
 export async function GET(request) {
   const url = new URL(request.url);
+  const providerParam = url.searchParams.get("provider");
+  const provider = PROVIDERS.includes(providerParam) ? providerParam : "github";
   const clientId = process.env.PIPERY_AUTH_CLIENT_ID || "pipery-dashboard";
   const stateSecret = process.env.PIPERY_AUTH_STATE_SECRET || "";
 
@@ -37,7 +39,7 @@ export async function GET(request) {
   const callbackUrl = safeCallbackUrl(url.searchParams.get("callbackUrl"), url.origin);
   const payload = {
     clientId,
-    provider: "github",
+    provider,
     callbackUrl,
     nonce: randomUUID(),
     issuedAt: Date.now()
@@ -45,9 +47,10 @@ export async function GET(request) {
 
   const authUrl = new URL(process.env.PIPERY_AUTH_URL || "https://auth.pipery.dev");
   authUrl.searchParams.set("client_id", clientId);
-  authUrl.searchParams.set("provider", "github");
+  authUrl.searchParams.set("provider", provider);
   authUrl.searchParams.set("callbackUrl", callbackUrl);
   authUrl.searchParams.set("state", signedState(payload, stateSecret));
 
   return NextResponse.redirect(authUrl);
 }
+const PROVIDERS = ["github", "gitlab", "bitbucket"];

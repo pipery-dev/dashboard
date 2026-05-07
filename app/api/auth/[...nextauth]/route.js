@@ -1,6 +1,19 @@
 import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptionsForProvider, PIPERY_PROVIDERS } from "@/lib/auth";
 
-const handler = NextAuth(authOptions);
+function providerFromRequest(request) {
+  const url = new URL(request.url);
+  const provider = url.searchParams.get("provider");
+
+  if (PIPERY_PROVIDERS.includes(provider)) {
+    return provider;
+  }
+
+  return "github";
+}
+
+function handler(request, context) {
+  return NextAuth(authOptionsForProvider(providerFromRequest(request)))(request, context);
+}
 
 export { handler as GET, handler as POST };

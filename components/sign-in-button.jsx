@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
+import { usePiperySession } from "@/components/use-pipery-session";
 
-function dashboardCallbackUrl() {
-  return encodeURIComponent(window.location.href);
-}
+const providerLabels = {
+  github: "GitHub",
+  gitlab: "GitLab",
+  bitbucket: "Bitbucket"
+};
+
+const providers = ["github", "gitlab", "bitbucket"];
 
 export function SignInButton() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = usePiperySession();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -34,7 +38,22 @@ export function SignInButton() {
     );
   }
 
-  const userLabel = session?.user?.login || session?.user?.email || session?.user?.name || "GitHub user";
+  const authenticatedProviders = session?.accounts ? Object.keys(session.accounts) : [];
+  const userLabel =
+    session?.user?.login ||
+    session?.user?.email ||
+    session?.user?.name ||
+    authenticatedProviders.map((provider) => session?.accounts?.[provider]?.login).find(Boolean) ||
+    "Pipery account";
+  const handleSignIn = (provider) => {
+    const callbackUrl = encodeURIComponent(window.location.href);
+    window.location.href = `/api/auth/start?provider=${provider}&callbackUrl=${callbackUrl}`;
+  };
+  const handleLogout = (provider) => {
+    const next = `${window.location.pathname}${window.location.search}${window.location.hash}` || "/";
+    const providerParam = provider ? `&provider=${provider}` : "";
+    window.location.href = `/api/auth/logout?next=${encodeURIComponent(next)}${providerParam}`;
+  };
 
   return (
     <div className="accountMenu" ref={menuRef}>
@@ -51,32 +70,36 @@ export function SignInButton() {
         <div className="accountMenuPanel" role="menu">
           {session ? (
             <>
-              <div className="accountMenuStatus">
-                <span>Connected</span>
-                <strong>GitHub</strong>
-              </div>
-              <button
-                className="accountMenuItem dangerItem"
-                role="menuitem"
-                onClick={() => {
-                  const next = `${window.location.pathname}${window.location.search}${window.location.hash}` || "/";
-                  window.location.href = `/api/auth/logout?next=${encodeURIComponent(next)}`;
-                }}
-              >
-                Sign out GitHub
-              </button>
+              {providers.map((provider) => {
+                const connected = authenticatedProviders.includes(provider);
+                return (
+                  <div className="accountMenuProvider" key={provider}>
+                    <div className="accountMenuStatus">
+                      <span>{connected ? "Connected" : "Not connected"}</span>
+                      <strong>{providerLabels[provider]}</strong>
+                    </div>
+                    <button
+                      className={`accountMenuItem ${connected ? "dangerItem" : ""}`}
+                      role="menuitem"
+                      onClick={() => connected ? handleLogout(provider) : handleSignIn(provider)}
+                    >
+                      {connected ? "Sign out" : "Sign in"}
+                    </button>
+                  </div>
+                );
+              })}
+              {authenticatedProviders.length > 1 ? (
+                <button className="accountMenuItem dangerItem" role="menuitem" onClick={() => handleLogout()}>
+                  Sign out all
+                </button>
+              ) : null}
             </>
           ) : (
-            <button
-              className="accountMenuItem"
-              role="menuitem"
-              onClick={() => {
-                const callbackUrl = dashboardCallbackUrl();
-                window.location.href = `/api/auth/start?callbackUrl=${callbackUrl}`;
-              }}
-            >
-              Sign in with GitHub
-            </button>
+            providers.map((provider) => (
+              <button className="accountMenuItem" role="menuitem" key={provider} onClick={() => handleSignIn(provider)}>
+                Sign in with {providerLabels[provider]}
+              </button>
+            ))
           )}
         </div>
       )}

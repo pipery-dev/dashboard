@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { JsonlViewer } from "@/components/jsonl-viewer";
+import { usePiperySession } from "@/components/use-pipery-session";
 import { getSavedDocument, listSavedDocuments, saveDocument } from "@/lib/storage";
 
 async function fetchJson(url) {
@@ -28,10 +28,78 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+const providerLabels = {
+  github: "GitHub",
+  gitlab: "GitLab",
+  bitbucket: "Bitbucket"
+};
+
+function repoMetadataPath(provider, repo) {
+  if (provider === "github") {
+    return {
+      branches: `/api/github/repos/${repo.owner}/${repo.name}/branches`,
+      workflows: `/api/github/repos/${repo.owner}/${repo.name}/workflows`
+    };
+  }
+
+  if (provider === "gitlab") {
+    return {
+      branches: `/api/gitlab/branches?projectId=${encodeURIComponent(repo.id)}`,
+      workflows: null
+    };
+  }
+
+  return {
+    branches: `/api/bitbucket/branches?workspace=${encodeURIComponent(repo.workspace)}&repo=${encodeURIComponent(repo.slug)}`,
+    workflows: null
+  };
+}
+
+function runsPath(provider, repo, selection) {
+  if (provider === "github") {
+    return `/api/github/repos/${repo.owner}/${repo.name}/runs?branch=${encodeURIComponent(selection.branch)}&workflowId=${encodeURIComponent(selection.workflowId)}`;
+  }
+
+  if (provider === "gitlab") {
+    return `/api/gitlab/pipelines?projectId=${encodeURIComponent(repo.id)}&branch=${encodeURIComponent(selection.branch)}`;
+  }
+
+  return `/api/bitbucket/pipelines?workspace=${encodeURIComponent(repo.workspace)}&repo=${encodeURIComponent(repo.slug)}&branch=${encodeURIComponent(selection.branch)}`;
+}
+
+function artifactsPath(provider, repo, selection) {
+  if (provider === "github") {
+    return `/api/github/repos/${repo.owner}/${repo.name}/artifacts?runId=${encodeURIComponent(selection.runId)}`;
+  }
+
+  if (provider === "gitlab") {
+    return `/api/gitlab/jobs?projectId=${encodeURIComponent(repo.id)}&pipelineId=${encodeURIComponent(selection.runId)}`;
+  }
+
+  return `/api/bitbucket/downloads?workspace=${encodeURIComponent(repo.workspace)}&repo=${encodeURIComponent(repo.slug)}`;
+}
+
+function artifactFilePath(provider, repo, selection) {
+  if (provider === "github") {
+    return `/api/github/repos/${repo.owner}/${repo.name}/artifact-file?artifactId=${encodeURIComponent(selection.artifactId)}`;
+  }
+
+  if (provider === "gitlab") {
+    return `/api/gitlab/artifact-file?projectId=${encodeURIComponent(repo.id)}&jobId=${encodeURIComponent(selection.artifactId)}`;
+  }
+
+  return `/api/bitbucket/artifact-file?workspace=${encodeURIComponent(repo.workspace)}&repo=${encodeURIComponent(repo.slug)}&name=${encodeURIComponent(selection.artifactId)}`;
+}
+
 export function RepoBrowser() {
-  const { data: session, status } = useSession();
+  const { data: session } = usePiperySession();
   const searchParams = useSearchParams();
-  const isSignedIn = Boolean(session);
+  const [provider, setProvider] = useState("github");
+  const previousProviderRef = useRef(provider);
+  const isSignedIn = Boolean(session?.accounts?.[provider]?.authenticated);
+  const authenticatedProviders = session?.accounts ? Object.keys(session.accounts) : [];
+  const authenticatedProvidersKey = authenticatedProviders.join(",");
+  const hasAnyProviderSession = authenticatedProviders.length > 0;
   const [activeTab, setActiveTab] = useState("local");
   const [repos, setRepos] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -54,6 +122,7 @@ export function RepoBrowser() {
     () => repos.find((repo) => repo.fullName === selection.repo) || null,
     [repos, selection.repo]
   );
+  const workflowPlaceholder = [{ id: "pipery", name: provider === "gitlab" ? "GitLab pipelines" : "Bitbucket pipelines" }];
 
   useEffect(() => {
     listSavedDocuments().then(setSavedDocuments).catch(() => {
@@ -75,19 +144,45 @@ export function RepoBrowser() {
         runId,
         artifactId
       });
-      setActiveTab("github");
+      setProvider("github");
+      setActiveTab("provider");
     }
   }, [searchParams]);
 
   useEffect(() => {
-    if (isSignedIn && activeTab === "local" && !document) {
-      setActiveTab("github");
+    if (!isSignedIn && hasAnyProviderSession) {
+      setProvider(authenticatedProviders[0]);
+      return;
     }
 
-    if (!isSignedIn && activeTab === "github") {
+    if (isSignedIn && activeTab === "local" && !document) {
+      setActiveTab("provider");
+    }
+
+    if (!isSignedIn && activeTab === "provider") {
       setActiveTab("local");
     }
-  }, [isSignedIn, activeTab, document]);
+  }, [isSignedIn, hasAnyProviderSession, authenticatedProvidersKey, activeTab, document]);
+
+  useEffect(() => {
+    if (previousProviderRef.current === provider) {
+      return;
+    }
+
+    previousProviderRef.current = provider;
+    setRepos([]);
+    setBranches([]);
+    setWorkflows([]);
+    setRuns([]);
+    setArtifacts([]);
+    setSelection({
+      repo: "",
+      branch: "",
+      workflowId: "",
+      runId: "",
+      artifactId: ""
+    });
+  }, [provider]);
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -109,7 +204,8 @@ export function RepoBrowser() {
     }
 
     setLoading("repos");
-    fetchJson("/api/github/repos")
+    const reposUrl = provider === "github" ? "/api/github/repos" : provider === "gitlab" ? "/api/gitlab/projects" : "/api/bitbucket/repos";
+    fetchJson(reposUrl)
       .then((payload) => {
         setRepos(payload.repos);
         setSelection((current) => ({
@@ -119,18 +215,18 @@ export function RepoBrowser() {
       })
       .catch((fetchError) => setError(fetchError.message))
       .finally(() => setLoading(""));
-  }, [isSignedIn]);
+  }, [isSignedIn, provider]);
 
   useEffect(() => {
     if (!selectedRepo) {
       return;
     }
 
-    const repoPath = `/api/github/repos/${selectedRepo.owner}/${selectedRepo.name}`;
+    const paths = repoMetadataPath(provider, selectedRepo);
     setLoading("repo-metadata");
     Promise.all([
-      fetchJson(`${repoPath}/branches`),
-      fetchJson(`${repoPath}/workflows`)
+      fetchJson(paths.branches),
+        paths.workflows ? fetchJson(paths.workflows) : Promise.resolve({ workflows: workflowPlaceholder })
     ])
       .then(([branchPayload, workflowPayload]) => {
         setBranches(branchPayload.branches);
@@ -149,7 +245,7 @@ export function RepoBrowser() {
       })
       .catch((fetchError) => setError(fetchError.message))
       .finally(() => setLoading(""));
-  }, [selectedRepo]);
+  }, [selectedRepo, provider]);
 
   useEffect(() => {
     if (!selectedRepo || !selection.branch || !selection.workflowId) {
@@ -157,9 +253,7 @@ export function RepoBrowser() {
     }
 
     setLoading("runs");
-    fetchJson(
-      `/api/github/repos/${selectedRepo.owner}/${selectedRepo.name}/runs?branch=${encodeURIComponent(selection.branch)}&workflowId=${encodeURIComponent(selection.workflowId)}`
-    )
+    fetchJson(runsPath(provider, selectedRepo, selection))
       .then((payload) => {
         setRuns(payload.runs);
         setSelection((current) => ({
@@ -171,17 +265,15 @@ export function RepoBrowser() {
       })
       .catch((fetchError) => setError(fetchError.message))
       .finally(() => setLoading(""));
-  }, [selectedRepo, selection.branch, selection.workflowId]);
+  }, [selectedRepo, provider, selection.branch, selection.workflowId]);
 
   useEffect(() => {
-    if (!selectedRepo || !selection.runId) {
+    if (!selectedRepo || (provider !== "bitbucket" && !selection.runId)) {
       return;
     }
 
     setLoading("artifacts");
-    fetchJson(
-      `/api/github/repos/${selectedRepo.owner}/${selectedRepo.name}/artifacts?runId=${encodeURIComponent(selection.runId)}`
-    )
+    fetchJson(artifactsPath(provider, selectedRepo, selection))
       .then((payload) => {
         setArtifacts(payload.artifacts);
         setSelection((current) => ({
@@ -191,7 +283,7 @@ export function RepoBrowser() {
       })
       .catch((fetchError) => setError(fetchError.message))
       .finally(() => setLoading(""));
-  }, [selectedRepo, selection.runId]);
+  }, [selectedRepo, provider, selection.runId]);
 
   async function openArtifact() {
     if (!selectedRepo || !selection.artifactId) {
@@ -202,12 +294,11 @@ export function RepoBrowser() {
     setLoading("open-artifact");
 
     try {
-      const payload = await fetchJson(
-        `/api/github/repos/${selectedRepo.owner}/${selectedRepo.name}/artifact-file?artifactId=${encodeURIComponent(selection.artifactId)}`
-      );
+      const payload = await fetchJson(artifactFilePath(provider, selectedRepo, selection));
 
       const nextDocument = {
-        id: `${selectedRepo.fullName}:${selection.branch}:${selection.workflowId}:${selection.runId}:${selection.artifactId}`,
+        id: `${provider}:${selectedRepo.fullName}:${selection.branch}:${selection.workflowId}:${selection.runId}:${selection.artifactId}`,
+        provider,
         repoFullName: selectedRepo.fullName,
         branch: selection.branch,
         workflowId: selection.workflowId,
@@ -285,13 +376,13 @@ export function RepoBrowser() {
 
         <div className="tabRow" role="tablist" aria-label="JSONL source">
           <button
-            className={`tabButton ${activeTab === "github" ? "tabButtonActive" : ""}`}
-            onClick={() => setActiveTab("github")}
+            className={`tabButton ${activeTab === "provider" ? "tabButtonActive" : ""}`}
+            onClick={() => setActiveTab("provider")}
             role="tab"
-            aria-selected={activeTab === "github"}
-            disabled={!session}
+            aria-selected={activeTab === "provider"}
+            disabled={!hasAnyProviderSession}
           >
-            GitHub Artifacts
+            CI/CD Artifacts
           </button>
           <button
             className={`tabButton ${activeTab === "local" ? "tabButtonActive" : ""}`}
@@ -303,9 +394,23 @@ export function RepoBrowser() {
           </button>
         </div>
 
-        {activeTab === "github" ? (
-          session ? (
+        {activeTab === "provider" ? (
+          isSignedIn ? (
             <>
+              <div className="providerRow" role="tablist" aria-label="CI/CD provider">
+                {Object.entries(providerLabels).map(([key, label]) => (
+                  <button
+                    key={key}
+                    className={`tabButton ${provider === key ? "tabButtonActive" : ""}`}
+                    onClick={() => setProvider(key)}
+                    role="tab"
+                    aria-selected={provider === key}
+                    disabled={!session?.accounts?.[key]?.authenticated}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <div className="formGrid">
                 <label>
                   Repository
@@ -353,7 +458,7 @@ export function RepoBrowser() {
                 </label>
 
                 <label>
-                  Action
+                  {provider === "github" ? "Action" : "Pipeline source"}
                   <select
                     className="textInput"
                     value={selection.workflowId}
@@ -375,7 +480,7 @@ export function RepoBrowser() {
                 </label>
 
                 <label>
-                  Run
+                  {provider === "bitbucket" ? "Recent pipeline" : "Run"}
                   <select
                     className="textInput"
                     value={selection.runId}
@@ -396,7 +501,7 @@ export function RepoBrowser() {
                 </label>
 
                 <label>
-                  Artifact
+                  {provider === "gitlab" ? "Job artifact" : provider === "bitbucket" ? "Download" : "Artifact"}
                   <select
                     className="textInput"
                     value={selection.artifactId}
@@ -422,7 +527,11 @@ export function RepoBrowser() {
                   <strong>{selectedRepo?.fullName || "None selected"}</strong>
                 </div>
                 <div className="metaCard">
-                  <span>Recent run count</span>
+                  <span>Provider</span>
+                  <strong>{providerLabels[provider]}</strong>
+                </div>
+                <div className="metaCard">
+                  <span>{provider === "bitbucket" ? "Recent pipeline count" : "Recent run count"}</span>
                   <strong>{runs.length}</strong>
                 </div>
                 <div className="metaCard">
@@ -431,7 +540,7 @@ export function RepoBrowser() {
                 </div>
                 <div className="metaCard">
                   <span>Signed in as</span>
-                <strong>{session?.user?.email || session?.user?.name || "GitHub user"}</strong>
+                  <strong>{session?.user?.email || session?.user?.name || session?.user?.login || `${providerLabels[provider]} user`}</strong>
               </div>
             </div>
 
@@ -453,7 +562,7 @@ export function RepoBrowser() {
             </>
           ) : (
             <div className="emptyState smallEmpty">
-              <p>Sign in with GitHub to browse repos, workflow runs, and build artifacts.</p>
+              <p>Sign in with {providerLabels[provider]} to browse projects, builds, and JSONL artifacts.</p>
             </div>
           )
         ) : (
