@@ -2,6 +2,10 @@
 
 import { useSession } from "next-auth/react";
 
+function dashboardCallbackUrl() {
+  return encodeURIComponent(window.location.href);
+}
+
 export function SignInButton() {
   const { data: session, status } = useSession();
 
@@ -18,11 +22,11 @@ export function SignInButton() {
       <button
         className="ghostButton"
         onClick={() => {
-          const callbackUrl = encodeURIComponent(window.location.href);
-          window.location.href = `https://auth.pipery.dev/api/auth/logout?callbackUrl=${callbackUrl}`;
+          const callbackUrl = dashboardCallbackUrl();
+          window.location.href = `https://auth.pipery.dev/api/auth/logout?callbackUrl=${callbackUrl}&provider=github`;
         }}
       >
-        Sign out
+        Sign out GitHub
       </button>
     );
   }
@@ -31,8 +35,8 @@ export function SignInButton() {
     <button
       className="primaryButton"
       onClick={() => {
-        const callbackUrl = encodeURIComponent(window.location.href);
-        window.location.href = `https://auth.pipery.dev?callbackUrl=${callbackUrl}`;
+        const callbackUrl = dashboardCallbackUrl();
+        window.location.href = `/api/auth/start?callbackUrl=${callbackUrl}`;
       }}
     >
       Sign in with GitHub

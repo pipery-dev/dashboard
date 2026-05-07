@@ -8,6 +8,8 @@ This repository now contains both Pipery surfaces:
 
 The dashboard signs in with GitHub, browses repositories and GitHub Actions artifacts, and opens `pipery.jsonl` files with search and entry inspection. The CLI uses the same artifact traversal and JSONL parsing flow for terminal use.
 
+The dashboard consumes the shared GitHub Pipery auth session cookie from `auth.pipery.dev`; keep `PIPERY_AUTH_SESSION_COOKIE_PREFIX` aligned with the auth service and workflow generator.
+
 ## Features
 
 - GitHub login via NextAuth for the dashboard
@@ -32,6 +34,10 @@ The dashboard signs in with GitHub, browses repositories and GitHub Actions arti
    - `GITHUB_SECRET`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL`
+   - `PIPERY_AUTH_SESSION_COOKIE_PREFIX`
+   - `PIPERY_AUTH_CLIENT_ID`
+   - `PIPERY_AUTH_STATE_SECRET`
+   - `PIPERY_AUTH_URL`
 
 4. Install dependencies for the monorepo:
 
