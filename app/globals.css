@@ -121,6 +121,17 @@ pre {
   min-width: 220px;
 }
 
+.providerSignInGroup {
+  display: grid;
+  gap: 0.65rem;
+  width: min(100%, 280px);
+}
+
+.providerSignInButton {
+  justify-content: center;
+  width: 100%;
+}
+
 .accountButton {
   display: inline-flex;
   align-items: center;
