@@ -55,56 +55,42 @@ export function SignInButton() {
     window.location.href = `/api/auth/logout?next=${encodeURIComponent(next)}${providerParam}`;
   };
 
-  if (!session) {
-    return (
-      <div className="providerSignInGroup" aria-label="Sign in options">
-        {providers.map((provider) => (
-          <button className="primaryButton providerSignInButton" key={provider} onClick={() => handleSignIn(provider)}>
-            Sign in with {providerLabels[provider]}
-          </button>
-        ))}
-      </div>
-    );
-  }
-
   return (
     <div className="accountMenu" ref={menuRef}>
-      <button className="ghostButton accountButton" onClick={() => setOpen((value) => !value)}>
+      <button className={session ? "ghostButton accountButton" : "primaryButton accountButton"} onClick={() => setOpen((value) => !value)}>
         <span className="accountIcon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" />
           </svg>
         </span>
-        <span>{userLabel}</span>
+        <span>{session ? userLabel : "Sign in"}</span>
         <span className="chevron" aria-hidden="true">▾</span>
       </button>
       {open && (
         <div className="accountMenuPanel" role="menu">
-          <>
-            {providers.map((provider) => {
-              const connected = authenticatedProviders.includes(provider);
-              return (
-                <div className="accountMenuProvider" key={provider}>
-                  <div className="accountMenuStatus">
-                    <span>{connected ? "Connected" : "Not connected"}</span>
-                    <strong>{providerLabels[provider]}</strong>
-                  </div>
-                  <button
-                    className={`accountMenuItem ${connected ? "dangerItem" : ""}`}
-                    role="menuitem"
-                    onClick={() => connected ? handleLogout(provider) : handleSignIn(provider)}
-                  >
-                    {connected ? "Sign out" : "Sign in"}
-                  </button>
+          {providers.map((provider) => {
+            const connected = authenticatedProviders.includes(provider);
+            return (
+              <div className="accountMenuProvider" key={provider}>
+                <div className="accountMenuStatus">
+                  <span>{connected ? "Connected" : session ? "Not connected" : "Provider"}</span>
+                  <strong>{providerLabels[provider]}</strong>
                 </div>
-              );
-            })}
-            {authenticatedProviders.length > 1 ? (
-              <button className="accountMenuItem dangerItem" role="menuitem" onClick={() => handleLogout()}>
-                Sign out all
+                <button
+                  className={`accountMenuItem ${connected ? "dangerItem" : ""}`}
+                  role="menuitem"
+                  onClick={() => connected ? handleLogout(provider) : handleSignIn(provider)}
+                >
+                  {connected ? "Sign out" : "Sign in"}
+                </button>
+              </div>
+            );
+          })}
+          {authenticatedProviders.length > 1 ? (
+            <button className="accountMenuItem dangerItem" role="menuitem" onClick={() => handleLogout()}>
+              Sign out all
               </button>
-            ) : null}
-          </>
+          ) : null}
         </div>
       )}
     </div>
