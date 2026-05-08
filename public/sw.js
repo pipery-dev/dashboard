@@ -1,5 +1,5 @@
-const CACHE_NAME = "pipery-dashboard-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
+const CACHE_NAME = "pipery-dashboard-v2";
+const STATIC_ASSETS = ["/manifest.webmanifest", "/icon.svg", "/icon.png"];
 
 function shouldBypassCache(requestUrl, request) {
   if (request.method !== "GET") {
@@ -8,7 +8,16 @@ function shouldBypassCache(requestUrl, request) {
 
   const url = new URL(requestUrl);
 
-  // Never cache auth, API, or extension-assisted requests.
+  // Always fetch app documents, framework chunks, auth, API, and no-store requests from the network.
+  if (
+    request.mode === "navigate" ||
+    request.destination === "document" ||
+    request.headers.get("accept")?.includes("text/html") ||
+    (url.origin === self.location.origin && url.pathname.startsWith("/_next/"))
+  ) {
+    return true;
+  }
+
   if (url.origin === self.location.origin && url.pathname.startsWith("/api/")) {
     return true;
   }
@@ -21,16 +30,20 @@ function shouldBypassCache(requestUrl, request) {
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((keys) =>
+        Promise.all(
+          keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        )
       )
-    )
+    ])
   );
 });
 

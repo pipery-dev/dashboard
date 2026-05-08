@@ -1,6 +1,9 @@
 import "./globals.css";
 import { PwaRegister } from "@/components/pwa-register";
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export const metadata = {
   title: "Pipery Dashboard",
   description: "Local-first dashboard for browsing Pipery GitHub artifacts and inspecting pipery.jsonl files.",
