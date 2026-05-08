@@ -123,6 +123,10 @@ export function RepoBrowser() {
     [repos, selection.repo]
   );
   const workflowPlaceholder = [{ id: "pipery", name: provider === "gitlab" ? "GitLab pipelines" : "Bitbucket pipelines" }];
+  const signInToProvider = () => {
+    const callbackUrl = encodeURIComponent(window.location.href);
+    window.location.href = `/api/auth/start?provider=${provider}&callbackUrl=${callbackUrl}`;
+  };
 
   useEffect(() => {
     listSavedDocuments().then(setSavedDocuments).catch(() => {
@@ -380,7 +384,6 @@ export function RepoBrowser() {
             onClick={() => setActiveTab("provider")}
             role="tab"
             aria-selected={activeTab === "provider"}
-            disabled={!hasAnyProviderSession}
           >
             CI/CD Artifacts
           </button>
@@ -395,45 +398,45 @@ export function RepoBrowser() {
         </div>
 
         {activeTab === "provider" ? (
-          isSignedIn ? (
-            <>
-              <div className="providerRow" role="tablist" aria-label="CI/CD provider">
-                {Object.entries(providerLabels).map(([key, label]) => (
-                  <button
-                    key={key}
-                    className={`tabButton ${provider === key ? "tabButtonActive" : ""}`}
-                    onClick={() => setProvider(key)}
-                    role="tab"
-                    aria-selected={provider === key}
-                    disabled={!session?.accounts?.[key]?.authenticated}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <div className="formGrid">
-                <label>
-                  Repository
-                  <select
-                    className="textInput"
-                    value={selection.repo}
-                    onChange={(event) =>
-                      setSelection({
-                        repo: event.target.value,
-                        branch: "",
-                        workflowId: "",
-                        runId: "",
-                        artifactId: ""
-                      })
-                    }
-                  >
-                    {repos.map((repo) => (
-                      <option key={repo.id} value={repo.fullName}>
-                        {repo.fullName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+          <>
+            <div className="providerRow" role="tablist" aria-label="CI/CD provider">
+              {Object.entries(providerLabels).map(([key, label]) => (
+                <button
+                  key={key}
+                  className={`tabButton ${provider === key ? "tabButtonActive" : ""}`}
+                  onClick={() => setProvider(key)}
+                  role="tab"
+                  aria-selected={provider === key}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {isSignedIn ? (
+              <>
+                <div className="formGrid">
+                  <label>
+                    Repository
+                    <select
+                      className="textInput"
+                      value={selection.repo}
+                      onChange={(event) =>
+                        setSelection({
+                          repo: event.target.value,
+                          branch: "",
+                          workflowId: "",
+                          runId: "",
+                          artifactId: ""
+                        })
+                      }
+                    >
+                      {repos.map((repo) => (
+                        <option key={repo.id} value={repo.fullName}>
+                          {repo.fullName}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
                 <label>
                   Branch
@@ -521,28 +524,28 @@ export function RepoBrowser() {
                 </label>
               </div>
 
-              <div className="metaGrid">
-                <div className="metaCard">
-                  <span>Repository</span>
-                  <strong>{selectedRepo?.fullName || "None selected"}</strong>
+                <div className="metaGrid">
+                  <div className="metaCard">
+                    <span>Repository</span>
+                    <strong>{selectedRepo?.fullName || "None selected"}</strong>
+                  </div>
+                  <div className="metaCard">
+                    <span>Provider</span>
+                    <strong>{providerLabels[provider]}</strong>
+                  </div>
+                  <div className="metaCard">
+                    <span>{provider === "bitbucket" ? "Recent pipeline count" : "Recent run count"}</span>
+                    <strong>{runs.length}</strong>
+                  </div>
+                  <div className="metaCard">
+                    <span>Artifact count</span>
+                    <strong>{artifacts.length}</strong>
+                  </div>
+                  <div className="metaCard">
+                    <span>Signed in as</span>
+                    <strong>{session?.user?.email || session?.user?.name || session?.user?.login || `${providerLabels[provider]} user`}</strong>
+                  </div>
                 </div>
-                <div className="metaCard">
-                  <span>Provider</span>
-                  <strong>{providerLabels[provider]}</strong>
-                </div>
-                <div className="metaCard">
-                  <span>{provider === "bitbucket" ? "Recent pipeline count" : "Recent run count"}</span>
-                  <strong>{runs.length}</strong>
-                </div>
-                <div className="metaCard">
-                  <span>Artifact count</span>
-                  <strong>{artifacts.length}</strong>
-                </div>
-                <div className="metaCard">
-                  <span>Signed in as</span>
-                  <strong>{session?.user?.email || session?.user?.name || session?.user?.login || `${providerLabels[provider]} user`}</strong>
-              </div>
-            </div>
 
               <div className="buttonRow">
                 <button className="primaryButton" onClick={openArtifact} disabled={!selection.artifactId}>
@@ -559,12 +562,16 @@ export function RepoBrowser() {
                   </article>
                 ))}
               </div>
-            </>
-          ) : (
-            <div className="emptyState smallEmpty">
-              <p>Sign in with {providerLabels[provider]} to browse projects, builds, and JSONL artifacts.</p>
-            </div>
-          )
+              </>
+            ) : (
+              <div className="emptyState smallEmpty providerSignInPrompt">
+                <p>Sign in with {providerLabels[provider]} to browse projects, builds, and JSONL artifacts.</p>
+                <button className="primaryButton" onClick={signInToProvider}>
+                  Sign in with {providerLabels[provider]}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="localTab">
             <div className="uploadCard">
