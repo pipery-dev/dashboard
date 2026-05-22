@@ -50,23 +50,20 @@ env:
   bitbucketScope: account repository pipeline pullrequest
   gitlabApiBase: https://gitlab.com/api/v4
   bitbucketApiBase: https://api.bitbucket.org/2.0
+  githubClientId: ""
+  gitlabClientId: ""
+  bitbucketClientId: ""
   extra: {}
 
 secrets:
   existingSecret: pipery-dashboard-nextauth
   nextauthSecretKey: nextauth-secret
-  githubClientIdKey: github-client-id
   githubClientSecretKey: github-client-secret
-  gitlabClientIdKey: gitlab-client-id
   gitlabClientSecretKey: gitlab-client-secret
-  bitbucketClientIdKey: bitbucket-client-id
   bitbucketClientSecretKey: bitbucket-client-secret
   nextauthSecret: ""
-  githubClientId: ""
   githubClientSecret: ""
-  gitlabClientId: ""
   gitlabClientSecret: ""
-  bitbucketClientId: ""
   bitbucketClientSecret: ""
 
 resources: {}

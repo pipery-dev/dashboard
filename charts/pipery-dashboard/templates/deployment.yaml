@@ -58,36 +58,27 @@ spec:
               value: {{ .Values.env.gitlabApiBase | quote }}
             - name: BITBUCKET_API_BASE
               value: {{ .Values.env.bitbucketApiBase | quote }}
+            - name: GITHUB_CLIENT_ID
+              value: {{ .Values.env.githubClientId | quote }}
+            - name: GITLAB_CLIENT_ID
+              value: {{ .Values.env.gitlabClientId | quote }}
+            - name: BITBUCKET_CLIENT_ID
+              value: {{ .Values.env.bitbucketClientId | quote }}
             - name: NEXTAUTH_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ include "pipery-dashboard.secretName" . }}
                   key: {{ .Values.secrets.nextauthSecretKey }}
-            - name: GITHUB_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "pipery-dashboard.secretName" . }}
-                  key: {{ .Values.secrets.githubClientIdKey }}
             - name: GITHUB_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ include "pipery-dashboard.secretName" . }}
                   key: {{ .Values.secrets.githubClientSecretKey }}
-            - name: GITLAB_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "pipery-dashboard.secretName" . }}
-                  key: {{ .Values.secrets.gitlabClientIdKey }}
             - name: GITLAB_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ include "pipery-dashboard.secretName" . }}
                   key: {{ .Values.secrets.gitlabClientSecretKey }}
-            - name: BITBUCKET_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "pipery-dashboard.secretName" . }}
-                  key: {{ .Values.secrets.bitbucketClientIdKey }}
             - name: BITBUCKET_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
