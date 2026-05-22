@@ -8,11 +8,11 @@ This repository now contains both Pipery surfaces:
 
 The dashboard signs in with GitHub, browses repositories and GitHub Actions artifacts, and opens `pipery.jsonl` files with search and entry inspection. The CLI uses the same artifact traversal and JSONL parsing flow for terminal use.
 
-The dashboard consumes the shared GitHub Pipery auth session cookie from `auth.pipery.dev`; keep `PIPERY_AUTH_SESSION_COOKIE_PREFIX` aligned with the auth service and workflow generator.
+The dashboard signs in directly with GitHub, GitLab, or Bitbucket Cloud so it can keep the provider access token needed for repository and pipeline APIs.
 
 ## Features
 
-- GitHub login via NextAuth for the dashboard
+- GitHub, GitLab, and Bitbucket Cloud login via NextAuth
 - GitHub device flow login for the CLI
 - Repository, branch, workflow, run, and artifact selection
 - Artifact ZIP inspection with automatic `.jsonl` extraction
@@ -24,20 +24,24 @@ The dashboard consumes the shared GitHub Pipery auth session cookie from `auth.p
 ## Setup
 
 1. Copy `.env.example` to `.env.local`
-2. Create a GitHub OAuth App and set the callback URL to:
+2. Create OAuth apps for the providers you want to enable. For GitHub, set the redirect URL to:
 
    `http://localhost:3000/api/auth/callback/github`
 
+   GitLab and Bitbucket Cloud use `/api/auth/callback/gitlab` and `/api/auth/callback/bitbucket`.
+
 3. Fill in:
 
-   - `GITHUB_ID`
-   - `GITHUB_SECRET`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL`
+   - `GITHUB_CLIENT_ID`
+   - `GITHUB_CLIENT_SECRET`
+   - `GITLAB_CLIENT_ID`
+   - `GITLAB_CLIENT_SECRET`
+   - `BITBUCKET_CLIENT_ID`
+   - `BITBUCKET_CLIENT_SECRET`
    - `PIPERY_AUTH_SESSION_COOKIE_PREFIX`
-   - `PIPERY_AUTH_CLIENT_ID`
-   - `PIPERY_AUTH_STATE_SECRET`
-   - `PIPERY_AUTH_URL`
+   - `PIPERY_CLI_GITHUB_CLIENT_ID` if you use the CLI login flow
 
 4. Install dependencies for the monorepo:
 
@@ -59,20 +63,7 @@ The dashboard consumes the shared GitHub Pipery auth session cookie from `auth.p
 
 ## Deployment
 
-This repository includes a GitHub Actions workflow for deploying to Vercel:
-
-- `.github/workflows/deploy-vercel.yml`
-
-The workflow follows Vercel's CLI-based GitHub Actions pattern and expects these repository secrets:
-
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-
-It creates:
-
-- preview deployments for pull requests
-- production deployments for pushes to `main`
+This repository includes a Helm chart and a GitHub Actions workflow that runs `pipery-npm-ci`, publishes the Docker image to GHCR, and publishes the ArgoCD chart update to `pipery-dev/pipery-argocd`.
 
 CLI packaging is handled separately:
 

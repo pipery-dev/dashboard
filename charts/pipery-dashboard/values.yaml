@@ -1,0 +1,85 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/pipery-dev/pipery-dashboard
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: dash.pipery.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+env:
+  nextauthUrl: https://dash.pipery.dev
+  sessionCookiePrefix: __Secure-pipery-auth
+  cookieDomain: .pipery.dev
+  secureCookies: "true"
+  githubScope: read:user user:email repo workflow
+  gitlabScope: read_user api
+  bitbucketScope: account repository pipeline pullrequest
+  gitlabApiBase: https://gitlab.com/api/v4
+  bitbucketApiBase: https://api.bitbucket.org/2.0
+  extra: {}
+
+secrets:
+  existingSecret: pipery-dashboard-nextauth
+  nextauthSecretKey: nextauth-secret
+  githubClientIdKey: github-client-id
+  githubClientSecretKey: github-client-secret
+  gitlabClientIdKey: gitlab-client-id
+  gitlabClientSecretKey: gitlab-client-secret
+  bitbucketClientIdKey: bitbucket-client-id
+  bitbucketClientSecretKey: bitbucket-client-secret
+  nextauthSecret: ""
+  githubClientId: ""
+  githubClientSecret: ""
+  gitlabClientId: ""
+  gitlabClientSecret: ""
+  bitbucketClientId: ""
+  bitbucketClientSecret: ""
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 20
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10

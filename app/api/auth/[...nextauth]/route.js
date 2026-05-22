@@ -3,7 +3,7 @@ import { authOptionsForProvider, PIPERY_PROVIDERS } from "@/lib/auth";
 
 function providerFromRequest(request) {
   const url = new URL(request.url);
-  const provider = url.searchParams.get("provider");
+  const provider = url.searchParams.get("provider") || url.pathname.split("/").pop();
 
   if (PIPERY_PROVIDERS.includes(provider)) {
     return provider;

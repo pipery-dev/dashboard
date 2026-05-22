@@ -20,13 +20,7 @@ export async function GET(request) {
     completeUrl.searchParams.set("provider", provider);
   }
 
-  const authLogoutUrl = new URL("/api/auth/logout", process.env.PIPERY_AUTH_URL || "https://auth.pipery.dev");
-  authLogoutUrl.searchParams.set("callbackUrl", completeUrl.toString());
-  if (provider) {
-    authLogoutUrl.searchParams.set("provider", provider);
-  }
-
-  const response = NextResponse.redirect(authLogoutUrl);
+  const response = NextResponse.redirect(completeUrl);
   expirePiperyAuthCookies(response, request, provider);
   return response;
 }

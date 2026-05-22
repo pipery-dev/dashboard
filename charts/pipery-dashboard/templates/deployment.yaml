@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pipery-dashboard.fullname" . }}
+  labels:
+    {{- include "pipery-dashboard.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "pipery-dashboard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "pipery-dashboard.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "pipery-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "pipery-dashboard.name" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "3000"
+            - name: HOSTNAME
+              value: "0.0.0.0"
+            - name: NEXTAUTH_URL
+              value: {{ .Values.env.nextauthUrl | quote }}
+            - name: PIPERY_AUTH_SESSION_COOKIE_PREFIX
+              value: {{ .Values.env.sessionCookiePrefix | quote }}
+            - name: PIPERY_AUTH_COOKIE_DOMAIN
+              value: {{ .Values.env.cookieDomain | quote }}
+            - name: PIPERY_AUTH_SECURE_COOKIES
+              value: {{ .Values.env.secureCookies | quote }}
+            - name: GITHUB_SCOPE
+              value: {{ .Values.env.githubScope | quote }}
+            - name: GITLAB_SCOPE
+              value: {{ .Values.env.gitlabScope | quote }}
+            - name: BITBUCKET_SCOPE
+              value: {{ .Values.env.bitbucketScope | quote }}
+            - name: GITLAB_API_BASE
+              value: {{ .Values.env.gitlabApiBase | quote }}
+            - name: BITBUCKET_API_BASE
+              value: {{ .Values.env.bitbucketApiBase | quote }}
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.nextauthSecretKey }}
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.githubClientIdKey }}
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.githubClientSecretKey }}
+            - name: GITLAB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.gitlabClientIdKey }}
+            - name: GITLAB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.gitlabClientSecretKey }}
+            - name: BITBUCKET_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.bitbucketClientIdKey }}
+            - name: BITBUCKET_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.bitbucketClientSecretKey }}
+            {{- range $name, $value := .Values.env.extra }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

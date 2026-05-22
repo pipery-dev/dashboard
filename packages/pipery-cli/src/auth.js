@@ -1,10 +1,18 @@
 import { loadConfig, saveConfig, clearConfig } from "./storage.js";
 
-const AUTH_URL =
-  process.env.PIPERY_AUTH_URL?.replace(/\/+$/, "") || "https://auth.pipery.dev";
+const GITHUB_DEVICE_CODE_URL = "https://github.com/login/device/code";
+const GITHUB_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token";
 
-async function postJson(pathname, body) {
-  const response = await fetch(`${AUTH_URL}${pathname}`, {
+function githubClientId() {
+  const clientId = process.env.PIPERY_CLI_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
+  if (!clientId) {
+    throw new Error("Set PIPERY_CLI_GITHUB_CLIENT_ID to enable CLI login.");
+  }
+  return clientId;
+}
+
+async function postGitHubJson(url, body) {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -15,47 +23,56 @@ async function postJson(pathname, body) {
 
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload.error || `Request failed for ${pathname}`);
+    throw new Error(payload.error_description || payload.error || `Request failed for ${url}`);
   }
 
   return payload;
 }
 
 export async function login() {
-  const deviceCode = await postJson("/api/device/github/start");
+  const deviceCode = await postGitHubJson(GITHUB_DEVICE_CODE_URL, {
+    client_id: githubClientId(),
+    scope: "repo workflow read:user user:email"
+  });
 
   console.log("\nGitHub login");
-  console.log(`1. Open ${deviceCode.verificationUri}`);
-  console.log(`2. Enter code: ${deviceCode.userCode}`);
-  console.log(`3. Authorize the Pipery CLI via ${AUTH_URL}.\n`);
+  console.log(`1. Open ${deviceCode.verification_uri}`);
+  console.log(`2. Enter code: ${deviceCode.user_code}`);
+  console.log("3. Authorize the Pipery CLI.\n");
 
-  const deadline = Date.now() + deviceCode.expiresIn * 1000;
+  const deadline = Date.now() + deviceCode.expires_in * 1000;
   let pollIntervalMs = deviceCode.interval * 1000;
 
   while (Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
 
-    const tokenResponse = await postJson("/api/device/github/poll", {
-      deviceCode: deviceCode.deviceCode
+    const tokenResponse = await postGitHubJson(GITHUB_ACCESS_TOKEN_URL, {
+      client_id: githubClientId(),
+      device_code: deviceCode.device_code,
+      grant_type: "urn:ietf:params:oauth:grant-type:device_code"
     });
 
-    if (tokenResponse.status === "pending") {
+    if (tokenResponse.error === "authorization_pending") {
       continue;
     }
 
-    if (tokenResponse.status === "slow_down") {
+    if (tokenResponse.error === "slow_down") {
       pollIntervalMs += 5000;
       await new Promise((resolve) => setTimeout(resolve, 5000));
       continue;
     }
 
+    if (tokenResponse.error) {
+      throw new Error(tokenResponse.error_description || tokenResponse.error);
+    }
+
     const config = await loadConfig();
     await saveConfig({
       ...config,
-      githubToken: tokenResponse.accessToken
+      githubToken: tokenResponse.access_token
     });
 
-    return tokenResponse.accessToken;
+    return tokenResponse.access_token;
   }
 
   throw new Error("GitHub login timed out before authorization completed.");
