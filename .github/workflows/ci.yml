@@ -93,5 +93,8 @@ jobs:
           chart_target_revision: ${{ github.ref_name }}
           image_repository: ${{ env.IMAGE_REPOSITORY }}
           image_tag: ${{ env.RELEASE_IMAGE_TAG }}
+          helm_values: |
+            imagePullSecrets:
+              - name: ghcr-pull-secret
           commit_user_name: pipery-dashboard
           commit_user_email: pipery-dashboard@users.noreply.github.com
