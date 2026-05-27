@@ -13,8 +13,8 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ${{ github.repository_owner }}/pipery-dashboard
-  IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/pipery-dashboard
+  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_REPOSITORY: ghcr.io/${{ github.repository }}
   RELEASE_IMAGE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
   RELEASE_SHA_TAG: sha-${{ github.sha }}
 
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pipery-dev/pipery-npm-ci@v1.1.2
+      - uses: pipery-dev/npm-ci@v1.1.2
         with:
           node_version: "22"
           package_manager: npm
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pipery-dev/pipery-argocd-cd@v1
+      - uses: pipery-dev/argocd-cd@v1
         with:
           validate_helm_chart: "true"
           app_name: pipery-dashboard
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pipery-dev/pipery-npm-ci@v1.1.2
+      - uses: pipery-dev/npm-ci@v1.1.2
         with:
           node_version: "22"
           package_manager: npm
@@ -85,7 +85,7 @@ jobs:
         uses: pipery-dev/pipery-argocd-cd@v1
         with:
           publish_helm_chart_update: "true"
-          argocd_repository: pipery-dev/pipery-argocd
+          argocd_repository: pipery-dev/argocd
           argocd_repository_token: ${{ secrets.PIPERY_ARGOCD_TOKEN }}
           app_name: pipery-dashboard
           app_namespace: pipery
