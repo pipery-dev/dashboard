@@ -97,5 +97,7 @@ jobs:
           helm_values: |
             imagePullSecrets:
               - name: ghcr-pull-secret
+            ingress:
+              className: nginx
           commit_user_name: pipery-dashboard
           commit_user_email: pipery-dashboard@users.noreply.github.com
