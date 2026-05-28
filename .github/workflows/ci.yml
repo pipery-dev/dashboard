@@ -99,5 +99,9 @@ jobs:
               - name: ghcr-pull-secret
             ingress:
               className: nginx
+            hostAliases:
+              - ip: 172.25.0.2
+                hostnames:
+                  - auth.pipery.dev
           commit_user_name: pipery-dashboard
           commit_user_email: pipery-dashboard@users.noreply.github.com

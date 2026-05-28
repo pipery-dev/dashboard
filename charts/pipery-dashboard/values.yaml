@@ -15,6 +15,7 @@ serviceAccount:
   name: ""
 
 podAnnotations: {}
+hostAliases: []
 podSecurityContext: {}
 securityContext:
   allowPrivilegeEscalation: false
