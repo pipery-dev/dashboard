@@ -50,6 +50,9 @@ env:
   bitbucketScope: account repository pipeline pullrequest
   gitlabApiBase: https://gitlab.com/api/v4
   bitbucketApiBase: https://api.bitbucket.org/2.0
+  dexIssuer: https://auth.pipery.dev/dex
+  dexClientId: pipery-dashboard
+  dexScope: openid profile email
   githubClientId: ""
   gitlabClientId: ""
   bitbucketClientId: ""
@@ -58,8 +61,13 @@ env:
 secrets:
   existingSecret: pipery-dashboard-nextauth
   nextauthSecretKey: nextauth-secret
+  dexClientSecretName: pipery-dex-clients
+  dexClientSecretKey: dashboard-client-secret
+  githubClientIdKey: github-client-id
   githubClientSecretKey: github-client-secret
+  gitlabClientIdKey: gitlab-client-id
   gitlabClientSecretKey: gitlab-client-secret
+  bitbucketClientIdKey: bitbucket-client-id
   bitbucketClientSecretKey: bitbucket-client-secret
   nextauthSecret: ""
   githubClientSecret: ""

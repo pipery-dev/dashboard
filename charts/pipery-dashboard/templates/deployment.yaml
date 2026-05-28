@@ -58,12 +58,32 @@ spec:
               value: {{ .Values.env.gitlabApiBase | quote }}
             - name: BITBUCKET_API_BASE
               value: {{ .Values.env.bitbucketApiBase | quote }}
+            - name: DEX_ISSUER
+              value: {{ .Values.env.dexIssuer | quote }}
+            - name: DEX_CLIENT_ID
+              value: {{ .Values.env.dexClientId | quote }}
+            - name: DEX_SCOPE
+              value: {{ .Values.env.dexScope | quote }}
+            - name: DEX_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.dexClientSecretName }}
+                  key: {{ .Values.secrets.dexClientSecretKey }}
             - name: GITHUB_CLIENT_ID
-              value: {{ .Values.env.githubClientId | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.githubClientIdKey }}
             - name: GITLAB_CLIENT_ID
-              value: {{ .Values.env.gitlabClientId | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.gitlabClientIdKey }}
             - name: BITBUCKET_CLIENT_ID
-              value: {{ .Values.env.bitbucketClientId | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pipery-dashboard.secretName" . }}
+                  key: {{ .Values.secrets.bitbucketClientIdKey }}
             - name: NEXTAUTH_SECRET
               valueFrom:
                 secretKeyRef:
